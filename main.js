@@ -67,3 +67,18 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }, { passive: true });
 });
+// ---- 让 .reveal 在手机/PC 都能显现 ----
+document.addEventListener("DOMContentLoaded", () => {
+  const items = document.querySelectorAll(".reveal");
+  const show = el => el.classList.add("in");
+
+  if ("IntersectionObserver" in window) {
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(e => { if (e.isIntersecting) { show(e.target); io.unobserve(e.target); } });
+    }, { rootMargin: "0px 0px -20% 0px", threshold: 0.1 });
+    items.forEach(el => io.observe(el));
+  } else {
+    // 兜底：旧设备或任何异常，直接显示
+    items.forEach(show);
+  }
+});
