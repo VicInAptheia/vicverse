@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Vic's World — 一个融合童话与科幻的个人网站" />
+  <title>Vic's World</title>
+  <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+  <!-- 🪐 顶部导航 -->
+  <header class="site-header">
+    <h1 class="logo">VIC</h1>
+    <nav>
+      <ul>
+        <li><a href="#home">首页</a></li>
+        <li><a href="#about">关于我</a></li>
+        <li><a href="#gallery">相册</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- 🌌 首屏 Hero 区：网站开场动画 -->
+  <section class="hero" id="home">
+    <div class="hero-inner reveal">
+      <img src="images/me.jpg" alt="Vic 头像" class="avatar" />
+      <h2 class="hero-title">Welcome to Vic’s Universe</h2>
+      <p class="hero-subtitle">用代码和创意，建造属于我的童话星球</p>
+      <a href="#about" class="btn btn-accent" data-scroll>开始探索</a>
+    </div>
+    <div class="scroll-indicator" aria-hidden="true">↓ scroll ↓</div>
+  </section>
+
+  <!-- 📖 关于我 -->
+  <section class="section" id="about">
+    <div class="container reveal">
+      <h3>About Me</h3>
+      <p>我是 Vic，一名热爱机器人和创意代码的学生，这个网站记录了我的思考、作品和成长。</p>
+    </div>
+  </section>
+
+  <!-- 🖼️ 相册展示 -->
+  <section class="section" id="gallery">
+    <div class="container reveal">
+      <h3>Gallery</h3>
+      <div class="grid">
+        <img src="images/sample1.jpg" alt="作品1" />
+        <img src="images/sample2.jpg" alt="作品2" />
+        <img src="images/sample3.jpg" alt="作品3" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ⚙️ 页脚 -->
+  <footer class="site-footer">
+    <p>&copy; <span data-year></span> Vic. All rights reserved.</p>
+  </footer>
+
+  <script src="main.js" defer></script>
+</body>
+</html>
