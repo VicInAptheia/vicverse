@@ -1,0 +1,551 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>The Structure Stays. The Story Changes.</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: #111;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+      "Segoe UI", sans-serif;
+    color: #f5f5f5;
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  .page {
+    width: min(1400px, 100%);
+    display: grid;
+    grid-template-columns: 260px 1fr 260px;
+    row-gap: 30px;
+    column-gap: 60px;
+  }
+
+  @media (max-width: 900px) {
+    body { padding: 22px 12px; }
+
+    .page {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto auto auto;
+    }
+
+    .side { order: 3; }
+    .side.right { order: 4; }
+    .canvas-area { order: 2; }
+    .title-block { order: 1; }
+    .side .full { display: none; }
+    .side .mobile { display: block; }
+  }
+
+  .side .mobile { display: none; }
+
+  .title-block {
+    grid-column: 1 / 4;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .title {
+    font-size: 36px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    opacity: 0.7;
+    font-size: 15px;
+    letter-spacing: 0.02em;
+  }
+
+  .side {
+    font-size: 18px;
+    line-height: 1.75;
+    padding-top: 50px;
+    opacity: 0.9;
+  }
+
+  .side h2 {
+    font-size: 22px;
+    margin-bottom: 20px;
+    letter-spacing: 0.04em;
+  }
+
+  .canvas-area {
+    text-align: center;
+    padding: 0 20px;
+  }
+
+  canvas {
+    display: block;
+    background: #ffffff;
+    width: min(70vh, 900px, 90vw);
+    height: auto;
+    max-width: 100%;
+    margin: 0 auto 18px auto;
+  }
+
+  .controls {
+    margin-top: 12px;
+  }
+
+  .mode-toggle {
+    display: inline-flex;
+    border-radius: 999px;
+    padding: 2px;
+    gap: 2px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.15);
+  }
+
+  .mode-btn {
+    border: none;
+    background: transparent;
+    border-radius: 999px;
+    color: #fff;
+    padding: 6px 16px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: 0.2s;
+  }
+
+  .mode-btn.active {
+    opacity: 1;
+    background: rgba(255,255,255,0.18);
+  }
+
+  .colors {
+    margin-top: 16px;
+    display: none;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .colors.visible {
+    display: flex;
+  }
+
+  .color-swatch {
+    width: 30px;
+    height: 30px;
+    border-radius: 999px;
+    border: 2px solid rgba(0,0,0,0.45);
+    cursor: pointer;
+    transition: 0.15s;
+  }
+
+  .color-swatch.active {
+    border-color: #fff;
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.5);
+  }
+
+  .buttons-row {
+    margin-top: 18px;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  button.action {
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    padding: 8px 18px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <div class="title-block">
+    <div class="title">The Structure Stays. The Story Changes.</div>
+    <div class="subtitle">A tool about lines you can’t undo, and colors you can rewrite.</div>
+  </div>
+
+  <div class="side left">
+    <h2>Lines</h2>
+
+    <div class="full">
+      You start in Line Mode.<br>
+      Every black segment you draw is final.<br>
+      There is no undo, only the next line.<br><br>
+
+      The outer frame was here before you arrived.<br>
+      Your lines divide the white into rooms,<br>
+      like choices slicing time into separate days.<br><br>
+
+      You cannot erase a line.<br>
+      You can only decide where to place the next one.
+    </div>
+
+    <div class="mobile">
+      Every black line is final.<br>
+      You can't erase it — only add the next one.
+    </div>
+  </div>
+
+  <div class="canvas-area">
+    <canvas id="mondrianCanvas" width="900" height="900"></canvas>
+
+    <div class="controls">
+      <div class="mode-toggle">
+        <button id="lineModeBtn" class="mode-btn active">Line Mode</button>
+        <button id="colorModeBtn" class="mode-btn">Color Mode</button>
+      </div>
+
+      <div id="colorPalette" class="colors"></div>
+
+      <div class="buttons-row">
+        <button id="resetBtn" class="action">Reset</button>
+        <button id="exportBtn" class="action">Export PNG</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="side right">
+    <h2>Colors</h2>
+
+    <div class="full">
+      In Color Mode,<br>
+      only your heavy lines remain.<br><br>
+
+      Inside each region, you are free.<br>
+      Red, yellow, or blue —<br>
+      and you may repaint the same region again.<br><br>
+
+      The past shape stays the same,<br>
+      but its meaning is yours to change.
+    </div>
+
+    <div class="mobile">
+      The lines stay.<br>
+      But you can repaint the spaces.
+    </div>
+  </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById("mondrianCanvas");
+const ctx = canvas.getContext("2d");
+
+const COLS = 16;
+const ROWS = 16;
+
+const WIDTH = canvas.width;
+const HEIGHT = canvas.height;
+const CELL_W = WIDTH / COLS;
+const CELL_H = HEIGHT / ROWS;
+
+const COLORS = [
+  { name: "Red", value: "#e53935" },
+  { name: "Yellow", value: "#fdd835" },
+  { name: "Blue", value: "#1e88e5" }
+];
+
+let currentColor = COLORS[0].value;
+let currentMode = "line";
+let pendingPoint = null;
+let isAnimating = false;
+let paletteUnlocked = false;
+
+const cellColors = [];
+const vLines = [];
+const hLines = [];
+
+function initState() {
+  for (let c = 0; c < COLS; c++) {
+    cellColors[c] = [];
+    for (let r = 0; r < ROWS; r++) cellColors[c][r] = "#ffffff";
+  }
+
+  for (let x = 0; x <= COLS; x++) {
+    vLines[x] = [];
+    for (let y = 0; y < ROWS; y++) vLines[x][y] = false;
+  }
+
+  for (let x = 0; x < COLS; x++) {
+    hLines[x] = [];
+    for (let y = 0; y <= ROWS; y++) hLines[x][y] = false;
+  }
+
+  // outer frame
+  for (let y = 0; y < ROWS; y++) {
+    vLines[0][y] = true;
+    vLines[COLS][y] = true;
+  }
+  for (let x = 0; x < COLS; x++) {
+    hLines[x][0] = true;
+    hLines[x][ROWS] = true;
+  }
+
+  pendingPoint = null;
+  isAnimating = false;
+  paletteUnlocked = false;
+
+  lineModeBtn.classList.add("active");
+  colorModeBtn.classList.remove("active");
+
+  updatePaletteVisibility();
+  draw();
+}
+
+function draw() {
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  // 填色时让每个cell略微重叠，消除像素缝隙
+  for (let c = 0; c < COLS; c++) {
+    for (let r = 0; r < ROWS; r++) {
+      ctx.fillStyle = cellColors[c][r];
+      const x = c * CELL_W;
+      const y = r * CELL_H;
+      ctx.fillRect(x - 0.5, y - 0.5, CELL_W + 1, CELL_H + 1);
+    }
+  }
+
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 8;
+  ctx.lineCap = "square";
+
+  for (let x = 0; x <= COLS; x++) {
+    for (let y = 0; y < ROWS; y++) {
+      if (vLines[x][y]) {
+        ctx.beginPath();
+        ctx.moveTo(x * CELL_W, y * CELL_H);
+        ctx.lineTo(x * CELL_W, (y + 1) * CELL_H);
+        ctx.stroke();
+      }
+    }
+  }
+
+  for (let x = 0; x < COLS; x++) {
+    for (let y = 0; y <= ROWS; y++) {
+      if (hLines[x][y]) {
+        ctx.beginPath();
+        ctx.moveTo(x * CELL_W, y * CELL_H);
+        ctx.lineTo((x + 1) * CELL_W, y * CELL_H);
+        ctx.stroke();
+      }
+    }
+  }
+
+  if (currentMode === "line" && pendingPoint && !isAnimating) {
+    ctx.fillStyle = "#000";
+    ctx.beginPath();
+    ctx.arc(pendingPoint.gx * CELL_W, pendingPoint.gy * CELL_H, 6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+canvas.addEventListener("click", handleCanvasClick);
+canvas.addEventListener("touchstart", e => {
+  const t = e.touches[0];
+  handleCanvasClick({ clientX: t.clientX, clientY: t.clientY });
+});
+
+function handleCanvasClick(event) {
+  if (isAnimating) return;
+
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = WIDTH / rect.width;
+  const scaleY = HEIGHT / rect.height;
+  const x = (event.clientX - rect.left) * scaleX;
+  const y = (event.clientY - rect.top) * scaleY;
+
+  if (currentMode === "line") handleLineClick(x, y);
+  else handleColorClick(x, y);
+}
+
+function handleLineClick(x, y) {
+  let gx = Math.round(x / CELL_W);
+  let gy = Math.round(y / CELL_H);
+
+  gx = Math.max(0, Math.min(COLS, gx));
+  gy = Math.max(0, Math.min(ROWS, gy));
+
+  if (!pendingPoint) {
+    pendingPoint = { gx, gy };
+    draw();
+    return;
+  }
+
+  const start = pendingPoint;
+  let end = { gx, gy };
+
+  const dx = Math.abs(end.gx - start.gx);
+  const dy = Math.abs(end.gy - start.gy);
+
+  if (dx >= dy) end.gy = start.gy;
+  else end.gx = start.gx;
+
+  if (start.gx === end.gx && start.gy === end.gy) {
+    pendingPoint = null;
+    draw();
+    return;
+  }
+
+  animateLine(start, end);
+}
+
+function animateLine(start, end) {
+  const startX = start.gx * CELL_W;
+  const startY = start.gy * CELL_H;
+  const endX = end.gx * CELL_W;
+  const endY = end.gy * CELL_H;
+
+  isAnimating = true;
+  const duration = 260;
+  let begin = null;
+
+  function step(t) {
+    if (!begin) begin = t;
+    const prog = Math.min(1, (t - begin) / duration);
+
+    draw();
+
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(
+      startX + (endX - startX) * prog,
+      startY + (endY - startY) * prog
+    );
+    ctx.stroke();
+
+    if (prog < 1) requestAnimationFrame(step);
+    else {
+      commitLine(start, end);
+      isAnimating = false;
+      pendingPoint = null;
+      draw();
+    }
+  }
+
+  requestAnimationFrame(step);
+}
+
+function commitLine(start, end) {
+  if (start.gx === end.gx) {
+    const x = start.gx;
+    const a = Math.min(start.gy, end.gy);
+    const b = Math.max(start.gy, end.gy);
+    for (let y = a; y < b; y++) vLines[x][y] = true;
+  } else {
+    const y = start.gy;
+    const a = Math.min(start.gx, end.gx);
+    const b = Math.max(start.gx, end.gx);
+    for (let x = a; x < b; x++) hLines[x][y] = true;
+  }
+}
+
+function handleColorClick(x, y) {
+  const col = Math.floor(x / CELL_W);
+  const row = Math.floor(y / CELL_H);
+  if (col < 0 || col >= COLS || row < 0 || row >= ROWS) return;
+  floodFill(col, row, currentColor);
+  draw();
+}
+
+function floodFill(c0, r0, newColor) {
+  const oldColor = cellColors[c0][r0];
+  if (oldColor === newColor) return;
+
+  const visited = Array.from({ length: COLS }, () => Array(ROWS).fill(false));
+  const q = [[c0, r0]];
+  visited[c0][r0] = true;
+
+  while (q.length) {
+    const [c, r] = q.shift();
+    cellColors[c][r] = newColor;
+
+    if (r > 0 && !visited[c][r - 1] && !hLines[c][r] && cellColors[c][r - 1] === oldColor) {
+      visited[c][r - 1] = true;
+      q.push([c, r - 1]);
+    }
+    if (r < ROWS - 1 && !visited[c][r + 1] && !hLines[c][r + 1] && cellColors[c][r + 1] === oldColor) {
+      visited[c][r + 1] = true;
+      q.push([c, r + 1]);
+    }
+    if (c > 0 && !visited[c - 1][r] && !vLines[c][r] && cellColors[c - 1][r] === oldColor) {
+      visited[c - 1][r] = true;
+      q.push([c - 1, r]);
+    }
+    if (c < COLS - 1 && !visited[c + 1][r] && !vLines[c + 1][r] && cellColors[c + 1][r] === oldColor) {
+      visited[c + 1][r] = true;
+      q.push([c + 1, r]);
+    }
+  }
+}
+
+function initPalette() {
+  const palette = document.getElementById("colorPalette");
+  COLORS.forEach((color, i) => {
+    const swatch = document.createElement("div");
+    swatch.className = "color-swatch" + (i === 0 ? " active" : "");
+    swatch.style.background = color.value;
+
+    swatch.onclick = () => {
+      currentColor = color.value;
+      document.querySelectorAll(".color-swatch")
+        .forEach(s => s.classList.remove("active"));
+      swatch.classList.add("active");
+    };
+
+    palette.appendChild(swatch);
+  });
+}
+
+function updatePaletteVisibility() {
+  const palette = document.getElementById("colorPalette");
+  if (paletteUnlocked && currentMode === "color")
+    palette.classList.add("visible");
+  else
+    palette.classList.remove("visible");
+}
+
+document.getElementById("lineModeBtn").onclick = () => setMode("line");
+document.getElementById("colorModeBtn").onclick = () => setMode("color");
+
+function setMode(mode) {
+  currentMode = mode;
+  pendingPoint = null;
+
+  if (mode === "color") paletteUnlocked = true;
+
+  lineModeBtn.classList.toggle("active", mode === "line");
+  colorModeBtn.classList.toggle("active", mode === "color");
+
+  updatePaletteVisibility();
+  draw();
+}
+
+document.getElementById("resetBtn").onclick = initState;
+document.getElementById("exportBtn").onclick = () => {
+  const a = document.createElement("a");
+  a.download = "mondrian-vicverse.png";
+  a.href = canvas.toDataURL();
+  a.click();
+};
+
+initPalette();
+initState();
+</script>
+</body>
+</html>
