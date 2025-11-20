@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
@@ -14,48 +14,29 @@
     font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
       "Segoe UI", sans-serif;
     color: #f5f5f5;
-    display: flex;
-    justify-content: center;
-    padding: 40px 20px;
   }
 
   .page {
     width: min(1400px, 100%);
+    margin: 40px auto 0 auto;   /* 居中 + 顶部留白 */
+    padding: 0 20px;            /* 左右留白 */
     display: grid;
     grid-template-columns: 260px 1fr 260px;
-    row-gap: 30px;
+    row-gap: 60px;              /* 标题与下方之间留更大空间 */
     column-gap: 60px;
   }
-
-  @media (max-width: 900px) {
-    body { padding: 22px 12px; }
-
-    .page {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto auto auto auto auto;
-    }
-
-    .side { order: 3; }
-    .side.right { order: 4; }
-    .canvas-area { order: 2; }
-    .title-block { order: 1; }
-    .side .full { display: none; }
-    .side .mobile { display: block; }
-  }
-
-  .side .mobile { display: none; }
 
   .title-block {
     grid-column: 1 / 4;
     text-align: center;
-    margin-bottom: 10px;
+    margin-bottom: 0;
   }
 
   .title {
     font-size: 36px;
     font-weight: 700;
     letter-spacing: 0.03em;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
 
   .subtitle {
@@ -67,15 +48,17 @@
   .side {
     font-size: 18px;
     line-height: 1.75;
-    padding-top: 50px;
     opacity: 0.9;
+    padding-top: 0;             /* 和画布对齐 */
   }
 
   .side h2 {
     font-size: 22px;
-    margin-bottom: 20px;
+    margin: 0 0 20px 0;         /* 顶部不留空，与画布顶端对齐 */
     letter-spacing: 0.04em;
   }
+
+  .side .mobile { display: none; }
 
   .canvas-area {
     text-align: center;
@@ -92,7 +75,7 @@
   }
 
   .controls {
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   .mode-toggle {
@@ -153,6 +136,7 @@
     display: flex;
     justify-content: center;
     gap: 14px;
+    flex-wrap: nowrap;
   }
 
   button.action {
@@ -165,6 +149,96 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     cursor: pointer;
+  }
+
+  .footer-watermark {
+    max-width: 1400px;
+    margin: 40px auto 22px auto;
+    text-align: center;
+    font-size: 12px;
+    opacity: 0.35;
+    color: #fff;
+    letter-spacing: 0.06em;
+    user-select: none;
+    font-weight: 300;
+  }
+
+  /* === Mobile: 竖排布局，顺序：标题 → 画布+按钮 → Lines → Colors → 水印 === */
+  @media (max-width: 900px) {
+    body {
+      padding: 20px 10px;
+    }
+
+    .page {
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      max-width: 640px;
+      margin: 20px auto 0 auto;
+      padding: 0;
+      row-gap: 0;
+    }
+
+    .title-block,
+    .canvas-area,
+    .side {
+      width: 100%;
+      margin: 0 0 24px 0;
+    }
+
+    .title-block { order: 1; margin-bottom: 32px; }
+    .canvas-area { order: 2; }
+    .side.left   { order: 3; }  /* Lines 文案移到按钮下面 */
+    .side.right  { order: 4; }  /* Colors 文案在 Lines 下面 */
+
+    .title {
+      font-size: 26px;
+      line-height: 1.3;
+    }
+
+    .subtitle {
+      font-size: 13px;
+    }
+
+    .canvas-area {
+      padding: 0;
+    }
+
+    canvas {
+      width: min(92vw, 80vh);
+      margin: 14px auto 14px auto;
+    }
+
+    .controls {
+      margin-top: 8px;
+    }
+
+    .buttons-row {
+      flex-wrap: wrap;
+      row-gap: 10px;
+      justify-content: center;
+    }
+
+    .side {
+      font-size: 15px;
+      line-height: 1.7;
+      padding-top: 0;
+    }
+
+    .side h2 {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+
+    .side .full { display: none; }
+    .side .mobile { display: block; }
+
+    .footer-watermark {
+      max-width: 640px;
+      margin-top: 32px;
+      padding-bottom: 32px;
+      font-size: 11px;
+    }
   }
 </style>
 </head>
@@ -240,6 +314,10 @@
 
 </div>
 
+<div class="footer-watermark">
+  © 2025 Vicverse — The Structure Stays. The Story Changes.
+</div>
+
 <script>
 const canvas = document.getElementById("mondrianCanvas");
 const ctx = canvas.getContext("2d");
@@ -309,7 +387,7 @@ function draw() {
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
 
-  // 填色时让每个cell略微重叠，消除像素缝隙
+  // 填色轻微重叠，避免像素缝隙
   for (let c = 0; c < COLS; c++) {
     for (let r = 0; r < ROWS; r++) {
       ctx.fillStyle = cellColors[c][r];
@@ -355,9 +433,10 @@ function draw() {
 
 canvas.addEventListener("click", handleCanvasClick);
 canvas.addEventListener("touchstart", e => {
-  const t = e.touches[0];
+  e.preventDefault();
+  const t = e.changedTouches[0];
   handleCanvasClick({ clientX: t.clientX, clientY: t.clientY });
-});
+}, { passive: false });
 
 function handleCanvasClick(event) {
   if (isAnimating) return;
@@ -549,3 +628,5 @@ initState();
 </script>
 </body>
 </html>
+
+<!--完成于2025.11.20，计算机实验室605-->
